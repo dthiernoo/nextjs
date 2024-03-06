@@ -6,7 +6,10 @@ Next.js is a React framework for building full-stack web applications. You use R
 * Getting Started
     - Automatic Installation
     - Running Your Project
-* Project Structure
+* Routing
+* Rendering
+* Data Fetching
+* Styling
 
 
 ## Getting Started
@@ -37,3 +40,17 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result. Now you have a Next.js app up and running. In the next section we'll dive into the project structure.
+
+
+## Routing
+Next.js has a file-system based routing mechanism. URL paths that users can access in the browser are defined by files and folders in your codebase. 
+
+### Routing Convention
+All routes must be placed inside the app folder. Every folder corresponds to a path segment in the browser URL. Each folder should have a file named `page.tsx` in which you do a default export of a function which returns jsx.
+
+```tsx
+export default function HomePage() {
+    return <h1>Hello World</h1>;
+};
+
+```
