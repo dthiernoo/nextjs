@@ -12,7 +12,10 @@ Next.js is a React framework for building full-stack web applications. You use R
     - Routing Convention
     - Layouts
         - Root Layout (Require)
-    - Templates
+        - Templates
+        - Not Found (`not-found.tsx`)
+        - Loading (`loading.tsx` and `<suspense fallback={<Component>}>`)
+        - Error (`error.tsx` or `global-error.tsx`)
     - Metadata
         - Title Metadata
     - Linking and Navigating
@@ -117,6 +120,69 @@ A template can be defined by exporting a default React component from a template
 export default function Template({ children }: { children: React.ReactNode }) {
   return <div>{children}</div>
 }
+```
+
+#### Loading
+The special file `loading.js` helps you create meaningful Loading UI with React Suspense. With this convention, you can show an instant loading state from the server while the content of a route segment loads. The new content is automatically swapped in once rendering is complete.
+
+```tsx
+export default function Loading() {
+    return <LoadingSkeleton />;
+}
+```
+
+![alt text](public/image3.png)
+
+You can accomplish the same thing in your ui components too.
+
+```tsx
+import { Suspense } from 'react'
+import { PostFeed, Weather } from './Components'
+ 
+export default function Posts() {
+  return (
+    <section>
+      <Suspense fallback={<p>Loading feed...</p>}>
+        <PostFeed />
+      </Suspense>
+      <Suspense fallback={<p>Loading weather...</p>}>
+        <Weather />
+      </Suspense>
+    </section>
+  )
+}
+```
+
+#### Error Handling
+The `error.js` file convention allows you to gracefully handle unexpected runtime errors in nested routes.
+
+![alt text](public/image4.png)
+
+Create error UI by adding an error.js file inside a route segment and default exporting a React component:
+
+```tsx
+// Error components must be Client components
+"use client";
+
+type ErrorBoundaryProps = {
+    error: Error & {
+        digest?: string
+    },
+    reset(): void
+};
+
+export default function ErrorBoundary({ error, reset }: ErrorBoundaryProps) {
+    return (
+        <>
+            <h2>Something went wrong!</h2>
+            {/* Attempt to recover by trying to re-render the segment */}
+            <button onClick={() => reset()}>
+                Try again
+            </button>
+        </h2>
+    );
+};
+
 ```
 
 ### Metadata
