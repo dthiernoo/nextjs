@@ -1,7 +1,9 @@
 
 # Complete Beginner Guide to Next.js
 Next.js is a React framework for building full-stack web applications. You use React Components to build user interfaces, and Next.js for additional features and optimizations.
-
+&nbsp;
+&nbsp;
+&nbsp;
 ## Table of Content
 * Getting Started
     - Automatic Installation
@@ -16,6 +18,8 @@ Next.js is a React framework for building full-stack web applications. You use R
 * Data Fetching
 * Styling
 
+&nbsp;
+&nbsp;&nbsp;
 
 ## Getting Started
 
@@ -46,6 +50,9 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result. Now you have a Next.js app up and running. In the next section we'll dive into the project structure.
 
+&nbsp;
+&nbsp;
+&nbsp;
 
 ## Routing
 Next.js has a file-system based routing mechanism. URL paths that users can access in the browser are defined by files and folders in your codebase. 
