@@ -14,7 +14,9 @@ Next.js is a React framework for building full-stack web applications. You use R
         - Root Layout (Require)
     - Templates
     - Metadata
-        - Title Field
+        - Title Metadata
+    - Linking and Navigating
+        - Link Component
 * Rendering
 * Data Fetching
 * Styling
@@ -67,7 +69,7 @@ export default function HomePage() {
 };
 ```
 
-### Layouts
+#### Layouts
 A layout is UI that is shared between multiple routes. On navigation, layouts do not re-render. Layouts can also be nested. You can define a layout by default exporting a React component from a `layout.tsx` file. The component should accept a `children` prop of type `React.ReactNode` that will be populated with a child layout (if it exists) or a page during rendering.
 
 ```tsx
@@ -87,7 +89,7 @@ export default function DashboardLayout({
 }
 ```
 
-### Root Layout (Required)
+#### Root Layout (Required)
 The root layout is defined at the top level of the `app` directory and applies to all routes. The layout is required and must contain `html` and `body` tags, allowing you to modify the initial HTML returned from the server.
 
 ```tsx
@@ -103,7 +105,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-### Templates
+#### Templates
 Templates ares similar to layouts in that they wrap each child layout or page. However, the difference is that unlike layouts that persist across routes and maintain state, templates create a new instance for each of their children on navigation. This means that when a user navigates between routes that share a template, a new instance of the component is mounted, DOM elements are recreateds, states is not preserved and effects are re-synchronized.
 
 A template can be defined by exporting a default React component from a template.js file. The component should accept a children prop.
@@ -180,7 +182,7 @@ export default function Page() {
 
 Both `layout.tsx` and `page.tsx` files can export metadata. If defined in a layout, it applies to all pages in that layout, but if defined in a page, it applies only to that page. Metadata is read in order, from the root level down to the final page level. When there's metadata in multiple places for the same route, they get combined, but page metadata will replace layout metadata if they have the same properties.
 
-### Title Metadata
+#### Title Metadata
 The title field's primary purpose is to define the document title. You can define it either by a simple string (view example above or as an object).
 
 ```tsx
@@ -188,6 +190,8 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
     title: {
+        // Useful when you want to provide a title that completely ignores the title
+        // template set in the parent segments.  
         absolute: '', 
 
         // Useful when you want to provide fallback title for child route segments
@@ -204,3 +208,105 @@ export default function Page() {
     return '...';
 };
 ```
+
+### Linking and Navigating
+There are four ways to navigate between routes in Next.js:
+- Using the `<Link>` Component
+- Using the useRouter hook (Client Components)
+- Using the redirect function (Server Components)
+
+#### Link Component
+`<Link>` is a built-in component that extends the `<a>`HTML tag to provide prefetching and client-side navigation between routes. It is the primary way and recommended way to navigate between routes in Next.js.
+
+You can use it by importing it from `next/link`, and passing a href props to the component:
+```tsx
+import Link from 'next/link';
+
+export default function Page() {
+    return <Link href={"/dashboard"}>Dashboard</Link>
+};
+```
+
+For more info: https://nextjs.org/docs/app/api-reference/components/link
+
+![alt text](/public/image.png)
+
+#### usePathname
+You can use `usePathname()` to get the current pathname. This could be used to determine if a link is active.
+
+```tsx
+import { usePathname } from 'next/navigation';
+import Link from 'next/link'
+ 
+export function Links() {
+  const pathname = usePathname()
+ 
+  return (
+    <nav>
+      <ul>
+        <li>
+          <Link className={`link ${pathname === '/' ? 'active' : ''}`} href="/">
+            Home
+          </Link>
+        </li>
+        <li>
+          <Link
+            className={`link ${pathname === '/about' ? 'active' : ''}`}
+            href="/about"
+          >
+            About
+          </Link>
+        </li>
+      </ul>
+    </nav>
+  )
+}
+```
+
+#### useRouter hook
+The `useRouter` hook allows you to programmatically change routes from Client Components. It is recommended to use `<Link>` component to navigate between routes unless you have a specific requirement for using `useRouter`.
+
+```tsx
+"use client"
+
+import { useRouter } from 'next/navigation';
+
+export default function Page() {
+    const router = useRouter();
+
+    return (
+        <button type="button" onClick={() => router.push('/dashboard')}>
+            Dashboard
+        </button>
+    )
+}
+
+```
+
+Reference: https://nextjs.org/docs/app/api-reference/functions/use-router
+
+![alt text](/public/image2.png)
+
+#### redirect function
+For Server Components, use the `redirect` function instead.
+
+```tsx
+import { redirect } from 'next/navigation'
+ 
+async function fetchTeam(id: string) {
+  const res = await fetch('https://...')
+  if (!res.ok) return undefined
+  return res.json()
+}
+ 
+export default async function Profile({ params }: { params: { id: string } }) {
+  const team = await fetchTeam(params.id)
+  if (!team) {
+    redirect('/login')
+  }
+ 
+  // ...
+}
+
+```
+
