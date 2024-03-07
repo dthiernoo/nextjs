@@ -14,6 +14,7 @@ Next.js is a React framework for building full-stack web applications. You use R
         - Root Layout (Require)
     - Templates
     - Metadata
+        - Title Field
 * Rendering
 * Data Fetching
 * Styling
@@ -178,3 +179,28 @@ export default function Page() {
 ```
 
 Both `layout.tsx` and `page.tsx` files can export metadata. If defined in a layout, it applies to all pages in that layout, but if defined in a page, it applies only to that page. Metadata is read in order, from the root level down to the final page level. When there's metadata in multiple places for the same route, they get combined, but page metadata will replace layout metadata if they have the same properties.
+
+### Title Metadata
+The title field's primary purpose is to define the document title. You can define it either by a simple string (view example above or as an object).
+
+```tsx
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+    title: {
+        absolute: '', 
+
+        // Useful when you want to provide fallback title for child route segments
+        // that don't explicitly specify a title.
+        default: 'Next.js Tutorial | dthiernoo', 
+
+        // Useful when you want to create dynamic titles by addung a prefix or a suffix.
+        // It applies to child route segments and not the segment in which it is defined.
+        template: '%s | dthiernoo'
+    }
+};
+
+export default function Page() {
+    return '...';
+};
+```
