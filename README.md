@@ -114,11 +114,12 @@ export default function Template({ children }: { children: React.ReactNode }) {
 ```
 
 ### Metadata
-In the `app` directory, you can modify the `<head>` HTML elements such as `title` and `meta` by using the Metadata API. You should not manually add <head> tags such as <title> and <meta> to root layouts. Instead, you should use the Metadata API which automatically handles advanced requirements such as streaming and de-duplicating <head> elements.
+In the `app` directory, you can modify the `<head>` HTML elements such as `title` and `meta` by using the Metadata API. You should not manually add `<head>` tags such as `<title>` and `<meta>` to root layouts. Instead, you should use the Metadata API which automatically handles advanced requirements such as streaming and de-duplicating `<head>` elements.
 
 Metadata can be defined by exporting a `metadata` object of type `Metadata` from 'next' or `generateMetadata` function that returns an object of type `Metadata` in a layout.js or page.js file.
 
 ```tsx
+// Exporting a static metadata object
 import { Metadata } from 'next';
 
 export const metatda: Metadata = {
@@ -132,22 +133,48 @@ export default function Page() {
 ```
 
 ```tsx
+// Exporting a dynamic generateMetadata function
 import { Metadata } from 'next';
 
 type PageProps = {
     params: {
         blogId: string
     }
-}
+};
 
 export const generateMetadata = ({ params }: PageProps): Metadata => {
     return {
         title: `Next.js blog ${params.blogId}`,
         description: "My Next.js file"
     }
-}
+};
 
 export default function Page() {
     return '...';
 };
 ```
+
+```tsx
+// Exporting a dynamic generateMetadata function
+import { Metadata } from 'next';
+
+type PageProps = {
+    params: {
+        blogId: string
+    }
+};
+
+export const generateMetadata = async ({ params }: PageProps): Metadata => {
+    const description = await fetchBlogDescription(params.blogId);
+    return {
+        title: `Next.js blog ${params.blogId}`,
+        description: `${description} | Next.js`
+    }
+};
+
+export default function Page() {
+    return '...';
+};
+```
+
+Both `layout.tsx` and `page.tsx` files can export metadata. If defined in a layout, it applies to all pages in that layout, but if defined in a page, it applies only to that page. Metadata is read in order, from the root level down to the final page level. When there's metadata in multiple places for the same route, they get combined, but page metadata will replace layout metadata if they have the same properties.
