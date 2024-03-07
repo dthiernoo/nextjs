@@ -17,6 +17,9 @@ Next.js is a React framework for building full-stack web applications. You use R
         - Title Metadata
     - Linking and Navigating
         - Link Component
+        - usePathname
+        - useRouter (for client side)
+        - redirect (for server side)
 * Rendering
 * Data Fetching
 * Styling
