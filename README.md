@@ -10,6 +10,10 @@ Next.js is a React framework for building full-stack web applications. You use R
     - Running Your Project
 * Routing
     - Routing Convention
+    - Dynamic Routing: `[folderNameId]`
+    - Catch-all Segments: `[...folderName]`
+    - Optional Catch-all Segments: `[[...folderName]]`
+    - Parallel Routes `@slotName`
     - Layouts
         - Root Layout (Require)
         - Templates
@@ -17,12 +21,18 @@ Next.js is a React framework for building full-stack web applications. You use R
         - Loading (`loading.tsx` and `<suspense fallback={<Component>}>`)
         - Error (`error.tsx` or `global-error.tsx`)
     - Metadata
+        - generateMetadata(): Metadata
         - Title Metadata
     - Linking and Navigating
         - Link Component
         - usePathname
         - useRouter (for client side)
         - redirect (for server side)
+    - Project Organization
+        - Safe Colocation by default
+        - Route groups: `(folderName)`
+        - Private Folders: `_folderName`
+        - Module Path Aliases `@/components/button`
 * Rendering
 * Data Fetching
 * Styling
@@ -75,7 +85,71 @@ export default function HomePage() {
 };
 ```
 
-#### Layouts
+#### Parallel Routes
+Parallel Routes allows you to simultaneously or conditionnally render one or more pages within the same layout. They are useful for highly dynamic sections of an app such as dashboards and feeds on social sites.
+
+##### Parallel Routes Convention : `@slotName`
+Parallel routes are created using named slots. Slots ared defined with the `@folder` convention. For example, the following structure defines two slots: `@analytics` and `@team`:
+
+![alt text](image.png)
+
+##### Slots are Passed as Props to the Shared Parent Layout
+Slots are passed as props to the shared parent layout (type of ReactNode). For the example above, the component in `app/layout.js` now accepts the `@analytics` and `@team` slots props, and can render them in parallel alongside the `children` prop:
+
+```tsx
+type LayoutProps: {
+    children: React.ReactNode,
+    analytics: React.ReactNode,
+    team: React.ReactNode
+};
+
+export default function Layout({ children, analytics, team }: LayoutProps) {
+    return (
+        <div>
+            {children}
+            {analytics}
+            {team}
+        </div>
+    )
+}
+```
+
+##### Slots do not affect the URL structure
+However, slots are not route segments and do not affect the URL structure. For example, for `/dashboard/@analytics/views`, the URL will be `/dashboard/views` since `@analytics` is a slot.
+
+![alt text](image-1.png)
+
+##### Active state and navigation
+By default, Next.js keeps track of the active state (the active subpage) for each slot. However, the content rendered within a slot will depend on the type of navigation:
+- Soft Navigation (with the `Link` component): During client-side navigation, Next.js will perform a partial render, changing the subpage within the slot while maintaining the other slot's active subpages, even if they don't match the current URL.
+- Hard Navigation: After a full-page load (browser refresh), Next.js cannot determine the active state for the slots that don't match the current URL. Instead, it will render a `default.js` file for the unmatchde slots, or `404` page if `default.js` doesn't exist.
+
+###### `default.js`
+You can define a `default.js` file to render as a fallback for unmatched slots during the initial load or full-page reload.
+
+![alt text](image-2.png)
+
+###### `useSelectedLayoutSegment(s)`
+Both `useSelectedLayoutSegment` and `useSelectedLayoutSegments` accept a `parallelRoutesKey` parameter of type `string`, which allows you to read the active route segment of the specified slot.
+
+```tsx
+"use client";
+
+import { useSelectedLayoutSegment } from "next/navigation";
+
+export default function ({ auth }: { auth: React.ReactNode }) {
+    const teamSegment = useSelectedLayoutSegment("auth");
+    //...
+}
+```
+
+When a user navigates to `app/@auth/login` or (`/login` in the Url bar), `loginSegment` will be equal to `"login"`.
+
+When using `useSelectedLayoutSegments`, it will return an array of strings containing the active segments one level down from the layout the hook was called from. Or an empty array if none exist.
+
+For more info: https://nextjs.org/docs/app/building-your-application/routing/parallel-routes
+
+### Layouts
 A layout is UI that is shared between multiple routes. On navigation, layouts do not re-render. Layouts can also be nested. You can define a layout by default exporting a React component from a `layout.tsx` file. The component should accept a `children` prop of type `React.ReactNode` that will be populated with a child layout (if it exists) or a page during rendering.
 
 ```tsx
