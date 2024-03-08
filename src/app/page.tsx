@@ -1,12 +1,12 @@
-import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
     <>
-    <h1>Next.js Tutorial</h1>
-    <li><a href="/about">About</a></li>
-    <li><a href="/contact">Contact</a></li>
-    <li><a href="/services">Services</a></li>
+    <h1 className="m-[50px]">Intercepting Routes</h1>
+    <Link className="text-blue-700" href="/login">Login</Link> <br />
+    <Link  className="text-blue-700" href="/register">Register</Link> <br />
+    <Link  className="text-blue-700" href="/blog">Blog</Link>
     </>
   );
 }
