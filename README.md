@@ -9,11 +9,17 @@ Next.js is a React framework for building full-stack web applications. You use R
     - Automatic Installation
     - Running Your Project
 * Routing
-    - Routing Convention
-    - Dynamic Routing: `[folderNameId]`
-    - Catch-all Segments: `[...folderName]`
-    - Optional Catch-all Segments: `[[...folderName]]`
-    - Parallel Routes `@slotName`
+    - Routing
+      - Routing Convention
+      - Dynamic Routing: `[folderNameId]`
+      - Catch-all Segments: `[...folderName]`
+      - Optional Catch-all Segments: `[[...folderName]]`
+      - Parallel Routes `@slotName`
+      - Intercepting Routes
+        - `(.)folderName`
+        - `(..)folderName`
+        - `(..)(..)folderName`
+        - `(...)folderName`
     - Layouts
         - Root Layout (Require)
         - Templates
@@ -33,6 +39,8 @@ Next.js is a React framework for building full-stack web applications. You use R
         - Route groups: `(folderName)`
         - Private Folders: `_folderName`
         - Module Path Aliases `@/components/button`
+      - Route Handlers
+
 * Rendering
 * Data Fetching
 * Styling
@@ -170,7 +178,7 @@ export default function DashboardLayout({
 ```
 
 #### Root Layout (Required)
-The root layout is defined at the top level of the `app` directory and applies to all routes. The layout is required and must contain `html` and `body` tags, allowing you to modify the initial HTML returned from the server.
+The root layout is defined  at the top level of the `app` directory and applies to all routes. The layout is required and must contain `html` and `body` tags, allowing you to modify the initial HTML returned from the server.
 
 ```tsx
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -453,3 +461,137 @@ export default async function Profile({ params }: { params: { id: string } }) {
 
 ```
 
+### Route Handlers
+#### Convention
+Route Handlers allow you to create custom request handlers for a given route using the Web Request and Response APIs. Route Handlers are defined in a `route.ts` file inside the `app` directory:
+```tsx
+export const dynamic = "force-dynamic" // Disables caching for the GET request
+export async function GET(request: Request) {}
+```
+
+#### Supported HTTP Methods
+The following `http` methods are supported by Next.js:
+- `GET`: The GET method requests a representation of the specified resource. Requests using GET should only retrieve data.
+- `HEAD`: The HEAD method asks for a response identical to a GET request, but without the response body.
+- `POST`: The POST method submits an entity to the specified resource, often causing a change in state or side effects on the server.
+- `PUT`: The PUT method replaces all current representations of the target resource with the request payload.
+- `PATCH`: The PATCH method applies partial modifications to a resource.
+- `DELETE`: The DELETE method deletes the specified resource.
+- `OPTIONS`: The OPTIONS method describes the communication options for the target resource.
+
+#### Extended `NextResponse` and `NextRequest` APIs
+In addtion to supporting the native `Request` and `Response`. Next.js extends them with `NextRequest` and `NextResponse` to provide convenient helpers for advenced cases.
+
+They extend the native request and response API with additional convenience methods.
+`cookies`:
+- `set(name, value)`: Given a name, set a cookie with the given value on the request.
+```tsx
+request.cookies.set('theme', 'dark')
+```
+- `get(name)`: Given a cookie name, return the value of the cookie. If the cookie is not found, undefined is returned. If multiple cookies are found, the first one is returned.
+- `getAll()`:  Given a cookie name, return the values of the cookie. If no name is given, return all cookies on the request.
+- `delete(name)`: Given a cookie name, delete the cookie from the request.
+- `has(name)`: Given a cookie name, return true if the cookie exists on the request.
+- `clear()`: Remove the Set-Cookie header from the request.
+
+#### `NextRequest`
+##### `nextUrl`
+Extends the native URL API with additional convenience methods, including Next.js specific properties.
+
+#### `NextResponse`
+##### `json()`
+Produce a response with the given JSON body.
+```tsx
+import { NextResponse } from 'next/server'
+ 
+export async function GET(request: Request) {
+  return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+}
+```
+
+##### `redirect()`
+Produce a response that redirects to a URL.
+```tsx
+import { NextResponse } from 'next/server'
+ 
+return NextResponse.redirect(new URL('/new', request.url))
+```
+
+![alt text](image.png)
+
+
+
+#### Handlers Parameters
+Each HTTP handler has two parameters:
+- `request` (optional): The `request` object is a `NextRequest` object, which is an extension of the Web `Request` APO.
+- `context` (optional): Currently, the only value of `context` is `params`, which is an object containing the dynamic route parameters for the current route.
+```tsx
+// app/api/team/[teamId]/route.ts
+import { type NextRequest } from 'next/server';
+
+type ContextType = {
+  params: {
+    teamId: string
+  }
+}
+
+export const dynamic = "force-dynamic" // Disable caching for the Get request
+
+export async function GET(request: NextRequest, context: ContextType) {
+  const teamId = context.params.teamId; // '10'
+  // ...
+}
+```
+
+#### Streaming
+In Next.js, streaming refers to the ability to deliver data to the client incrementally as it becomes available, rather than waiting for the entire dataset to be processed before sending any response. It is commonly used in combination with Large Language Models (LLMs), such as OpenAI, for AI-generated content. Learn more about the AI SDK.
+
+```tsx
+// app/api/chat/route.ts
+import OpenAI from 'openai'
+import { OpenAIStream, StreamingTextResponse } from 'ai'
+ 
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+})
+ 
+export const runtime = 'edge'
+ 
+export async function POST(req: Request) {
+  const { messages } = await req.json()
+  const response = await openai.chat.completions.create({
+    model: 'gpt-3.5-turbo',
+    stream: true,
+    messages,
+  })
+ 
+  const stream = OpenAIStream(response)
+ 
+  return new StreamingTextResponse(stream)
+}
+```
+
+
+#### Request Body
+You can read the `Request` body using the standard Web Api methods:
+```tsx
+export async function POST(request: Request) {
+  const res = await request.json()
+  return Response.json({ res })
+}
+```
+
+#### Request Body FormData
+You can read the FormData using the request.formData() function:
+```tsx
+export async function POST(request: Request) {
+  const formData = await request.formData();
+  const name:string = formData.get('name')
+  const email:string = formData.get('email')
+  return Response.json({
+    name,
+    email
+  })
+}
+```
+Since `formData` data are all strings, you may want to use `zod-form-data` to validate the request and retrieve data in the format you prefer (e.g. number).
