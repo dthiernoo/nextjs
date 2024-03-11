@@ -12,11 +12,9 @@ export async function GET(_request: NextRequest, context: Context) {
 export async function PATCH(request: NextRequest, context: Context) {
     const ndata = await request.json();
     const todoId = parseInt(context.params.todoId);
-
-        data[todoId-1].title = ndata?.title;
-        data[todoId-1].description = ndata?.description;
-        data[todoId-1].completed = ndata?.completed;
-        console.log(data)
+    data[todoId-1].title = ndata?.title;
+    data[todoId-1].description = ndata?.description;
+    data[todoId-1].completed = ndata?.completed;
     return NextResponse.json(data[todoId-1], { status: 201 })
 }
 

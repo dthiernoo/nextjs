@@ -3,8 +3,11 @@ import { data } from "../data";
 
 
 
-export async function GET(_request: Request) {
-    return Response.json(data);
+export async function GET(request: NextRequest) {
+    const searchParams = request.nextUrl.searchParams;
+    const query = searchParams.get("query");
+    const filteredData = query ? data.filter(todo => todo.title.includes(query) || todo.description?.includes(query)) : data
+    return Response.json(filteredData);
 };
 
 export async function POST(request: NextRequest) {
@@ -15,6 +18,6 @@ export async function POST(request: NextRequest) {
     }
     data.push(newTodo);
     return NextResponse.json(newTodo, {
-        status: 201,
+        status: 200,
     })
 }
